@@ -1,44 +1,6 @@
 version: '3.8'
 
 services:
-  # Reverse proxy using Traefik
-  traefik:
-    image: traefik:v2.10
-    container_name: traefik
-    restart: unless-stopped
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.le.acme.email=your-email@example.com"
-      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./letsencrypt:/letsencrypt"
-    networks:
-      - web
-
-  # Example App: whoami (for testing path routing)
-  whoami:
-    image: traefik/whoami
-    container_name: whoami
-    restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=PathPrefix(`/whoami`)"
-      - "traefik.http.routers.whoami.entrypoints=web"
-      - "traefik.http.routers.whoami.middlewares=whoami-strip"
-      - "traefik.http.middlewares.whoami-strip.stripprefix.prefixes=/whoami"
-      - "traefik.http.services.whoami.loadbalancer.server.port=80"
-    networks:
-      - web
-
   # Vaultwarden service, served at /vault with sub-path support
   vaultwarden:
     image: vaultwarden/server:latest
@@ -50,24 +12,9 @@ services:
       WEBSOCKET_ENABLED: "true"
       SIGNUPS_ALLOWED: "false"
       # Must include sub-path and trailing slash for proper link generation
-      DOMAIN: "http://192.168.1.50/vault/"
-    labels:
-      - "traefik.enable=true"
-
-      # 1) Redirect exact /vault → /vault/ for clients
-      - "traefik.http.routers.vaultwarden-root.entrypoints=web"
-      - "traefik.http.routers.vaultwarden-root.rule=Path(`/vault`)"
-      - "traefik.http.routers.vaultwarden-root.middlewares=vw-add-slash"
-      - "traefik.http.middlewares.vw-add-slash.redirectregex.regex=^/vault$"
-      - "traefik.http.middlewares.vw-add-slash.redirectregex.replacement=/vault/"
-
-      # 2) Handle all /vault/ → strip prefix, proxy to Vaultwarden
-      - "traefik.http.routers.vaultwarden.entrypoints=web"
-      - "traefik.http.routers.vaultwarden.rule=PathPrefix(`/vault/`)"
-      - "traefik.http.routers.vaultwarden.middlewares=vw-strip-prefix"
-      - "traefik.http.middlewares.vw-strip-prefix.stripprefix.prefixes=/vault/"
-      - "traefik.http.services.vaultwarden.loadbalancer.server.port=80"
-
+      DOMAIN: "http://192.168.1.50/"
+    ports:
+      - 80:80
     networks:
       - web
 
