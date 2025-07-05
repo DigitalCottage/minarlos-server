@@ -49,22 +49,22 @@ services:
     environment:
       WEBSOCKET_ENABLED: "true"
       SIGNUPS_ALLOWED: "false"
-      # Include full path with trailing slash
+      # Base URL must include full path and trailing slash
       DOMAIN: "http://192.168.1.50/vault/"
     labels:
       - "traefik.enable=true"
-      # 1) Exact /vault → redirect to /vault/
+      # 1) Exact /vault -> redirect to /vault/
       - "traefik.http.routers.vaultwarden-root.rule=Path(`/vault`)"
       - "traefik.http.routers.vaultwarden-root.entrypoints=web"
       - "traefik.http.routers.vaultwarden-root.middlewares=vw-add-slash"
-      - "traefik.http.middlewares.vw-add-slash.redirectregex.regex=^/vault$$"
+      - "traefik.http.middlewares.vw-add-slash.redirectregex.regex=^/vault$"
       - "traefik.http.middlewares.vw-add-slash.redirectregex.replacement=/vault/"
-      # 2) Everything under /vault/ → strip prefix and proxy
+      # 2) Everything under /vault/ -> strip prefix and proxy to Vaultwarden
       - "traefik.http.routers.vaultwarden.rule=PathPrefix(`/vault/`)"
       - "traefik.http.routers.vaultwarden.entrypoints=web"
       - "traefik.http.routers.vaultwarden.middlewares=vw-strip-prefix"
       - "traefik.http.services.vaultwarden.loadbalancer.server.port=80"
-      - "traefik.http.middlewares.vw-strip-prefix.stripprefix.prefixes=/vault/"
+      - "traefik.http.middlewares.vw-strip-prefix.stripprefix.prefixes=/vault"
     networks:
       - web
 
