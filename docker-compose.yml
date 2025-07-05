@@ -1,7 +1,35 @@
 version: '3.8'
 
+networks:
+  web:
+    external: false
+  traefik:
+    driver: bridge
+
 services:
-  # Vaultwarden service, served at /vault with sub-path support
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    restart: unless-stopped
+    # Expose ports 80 & 443 to host
+    ports:
+      - 80:80
+      - 443:443
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.le.acme.email=you@example.com"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+    volumes:
+      - ./letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik
+      - web
+
   vaultwarden:
     image: vaultwarden/server:latest
     container_name: vaultwarden
@@ -11,13 +39,21 @@ services:
     environment:
       WEBSOCKET_ENABLED: "true"
       SIGNUPS_ALLOWED: "false"
-      # Must include sub-path and trailing slash for proper link generation
-      DOMAIN: "http://192.168.1.146/"
-    ports:
-      - 80:80
+      # Let Traefik handle the public host+path
+      DOMAIN: "https://vault.example.com/vault/"
+    labels:
+      - "traefik.enable=true"
+      # Route vault.example.com
+      - "traefik.http.routers.vault.rule=Host(`vault.example.com`) && PathPrefix(`/vault`)"
+      - "traefik.http.routers.vault.entrypoints=websecure"
+      - "traefik.http.routers.vault.tls=true"
+      - "traefik.http.routers.vault.tls.certresolver=le"
+      # Strip the /vault prefix before proxying to the container
+      - "traefik.http.middlewares.vault-stripprefix.stripprefix.prefixes=/vault"
+      - "traefik.http.routers.vault.middlewares=vault-stripprefix"
+      # Enable websocket forwarding
+      - "traefik.http.services.vault.loadbalancer.server.port=80"
+      - "traefik.http.services.vault.loadbalancer.server.scheme=http"
     networks:
       - web
-
-networks:
-  web:
-    driver: bridge
+      - traefik
