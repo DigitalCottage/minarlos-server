@@ -2,7 +2,7 @@ version: '3.8'
 
 networks:
   web:
-    external: false
+    driver: bridge
   traefik:
     driver: bridge
 
@@ -11,19 +11,21 @@ services:
     image: traefik:v2.10
     container_name: traefik
     restart: unless-stopped
-    # Expose ports 80 & 443 to host
     ports:
       - 80:80
       - 443:443
     command:
+      # Docker provider (containers only served when labeled)
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      # Define entrypoints
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.le.acme.email=you@example.com"
-      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      # File provider for your static cert
+      - "--providers.file.filename=/certs/tls.yaml"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"  # you can keep ACME around for other hostnames
     volumes:
+      - ./certs:/certs:ro
       - ./letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
@@ -39,21 +41,19 @@ services:
     environment:
       WEBSOCKET_ENABLED: "true"
       SIGNUPS_ALLOWED: "false"
-      # Let Traefik handle the public host+path
+      # Tell Vaultwarden its public URL root
       DOMAIN: "https://192.168.1.146/vault/"
     labels:
       - "traefik.enable=true"
-      # Route vault.example.com
-      - "traefik.http.routers.vault.rule=Host(`vault.example.com`) && PathPrefix(`/vault`)"
+      # Match IP + /vault prefix
+      - "traefik.http.routers.vault.rule=Host(`192.168.1.146`) && PathPrefix(`/vault`)"
       - "traefik.http.routers.vault.entrypoints=websecure"
       - "traefik.http.routers.vault.tls=true"
-      - "traefik.http.routers.vault.tls.certresolver=le"
-      # Strip the /vault prefix before proxying to the container
+      # No certresolver → uses your file‐provided cert
+      - "traefik.http.services.vault.loadbalancer.server.port=80"
+      # Strip /vault before proxying
       - "traefik.http.middlewares.vault-stripprefix.stripprefix.prefixes=/vault"
       - "traefik.http.routers.vault.middlewares=vault-stripprefix"
-      # Enable websocket forwarding
-      - "traefik.http.services.vault.loadbalancer.server.port=80"
-      - "traefik.http.services.vault.loadbalancer.server.scheme=http"
     networks:
       - web
       - traefik
