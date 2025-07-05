@@ -29,9 +29,9 @@ services:
       - nginx_network
 
 volumes:
-  vaultwarden_data:
-  nginx_data:
-  nginx_letsencrypt:
+  vaultwarden/data:
+  nginx/data:
+  nginx/letsencrypt:
 
 networks:
   nginx_network:
