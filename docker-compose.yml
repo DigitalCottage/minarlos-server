@@ -4,9 +4,25 @@ services:
     container_name: vaultwarden
     restart: always
     environment:
-      # DOMAIN: "https://vaultwarden.example.com"  # required when using a reverse proxy; your domain; vaultwarden needs to know it's https to work properly with attachments
-      SIGNUPS_ALLOWED: "true" # Deactivate this with "false" after you have created your account so that no strangers can register
+      DOMAIN: "https://vaultwarden.example.com"  # Your domain; vaultwarden needs to know it's https to work properly with attachments
     volumes:
-      - ./vw-data:/data # the path before the : can be changed
+      - /vw-data:/data
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: always
     ports:
-      - 11001:80 # you can replace the 11001 with your preferred port
+      - 80:80
+      - 443:443
+      - 443:443/udp # Needed for HTTP/3.
+    volumes:
+      - ./caddy:/usr/bin/caddy  # Your custom build of Caddy.
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy-config:/config
+      - ./caddy-data:/data
+    environment:
+      DOMAIN: "https://vaultwarden.example.com"  # Your domain.
+      EMAIL: "admin@example.com"                 # The email address to use for ACME registration.
+      DUCKDNS_TOKEN: "<token>"                   # Your Duck DNS token.
+      LOG_FILE: "/data/access.log"
