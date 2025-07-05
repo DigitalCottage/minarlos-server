@@ -49,14 +49,16 @@ services:
     environment:
       WEBSOCKET_ENABLED: "true"                            # Enable websockets for notifications
       SIGNUPS_ALLOWED: "false"                             # Disable public signups
-      DOMAIN: "https://your-domain.com"                   # Replace with your domain
+      DOMAIN: "http://192.168.1.50/vault/"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.vaultwarden.rule=PathPrefix(`/vault`)"
       - "traefik.http.routers.vaultwarden.entrypoints=web"
-      - "traefik.http.routers.vaultwarden.middlewares=vaultwarden-strip"
-      - "traefik.http.middlewares.vaultwarden-strip.stripprefix.prefixes=/vault"
-      - "traefik.http.services.vaultwarden.loadbalancer.server.port=80"
+      - "traefik.http.routers.vaultwarden.rule=PathPrefix(`/vault`)"
+      # 1) first add slash, 2) then strip it off before forwarding
+      - "traefik.http.routers.vaultwarden.middlewares=vaultwarden-add-slash,vaultwarden-strip-prefix"
+      - "traefik.http.middlewares.vaultwarden-add-slash.redirectregex.regex=^/vault$$"
+      - "traefik.http.middlewares.vaultwarden-add-slash.redirectregex.replacement=/vault/"
+      - "traefik.http.middlewares.vaultwarden-strip-prefix.stripprefix.prefixes=/vault"
     networks:
       - web
 
