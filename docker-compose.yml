@@ -19,7 +19,6 @@ services:
       - "443:443"
       - "443:443/udp"   # HTTP/3
     volumes:
-      - ./caddy:/usr/bin/caddy       # if you’ve built a custom Caddy binary
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy-config:/config
       - ./caddy-data:/data
