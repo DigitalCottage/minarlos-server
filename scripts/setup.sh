@@ -1,19 +1,24 @@
 #!/bin/bash
 
-# Get absolute path to the repo (where this script lives)
-REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Get the repo root (one level up from this script)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
 
+# Paths
 CRON_FILE="$REPO_DIR/.generated_crontab"
+LOG_DIR="$REPO_DIR/cronLogs"
+GIT_PULL_SCRIPT="$SCRIPT_DIR/git-pull.sh"
+LOG_FILE="$LOG_DIR/git-pull.log"
 
-# Create the crontab file dynamically
+# Make sure log folder exists
+mkdir -p "$LOG_DIR"
+
+# Create dynamic crontab
 cat > "$CRON_FILE" <<EOF
-* * * * * $REPO_DIR/scripts/git-pull.sh >> $REPO_DIR/cron_logs/git-pull.log 2>&1
+* * * * * $GIT_PULL_SCRIPT >> $LOG_FILE 2>&1
 EOF
 
-# Create the log folder if needed
-mkdir -p "$REPO_DIR/cron_logs"
-
-# Install the new crontab
+# Install the crontab
 crontab "$CRON_FILE"
 
 echo "✅ Cron job installed for repo at $REPO_DIR"
