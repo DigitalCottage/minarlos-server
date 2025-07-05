@@ -10,7 +10,6 @@ services:
     volumes:
       - ./vw-data:/data
 
-services:
   caddy:
     build: .
     container_name: caddy
