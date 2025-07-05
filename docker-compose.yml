@@ -1,20 +1,27 @@
-version: "3.8"
 services:
   vaultwarden:
     image: vaultwarden/server:latest
     container_name: vaultwarden
-    restart: unless-stopped
-    ports:
-      # Expose Vaultwarden's web UI on host port 80
-      - "80:80"
-    volumes:
-      # Persist data (DB, attachments, config)
-      - ./vw-data:/data
+    restart: always
     environment:
-      # Prevent public self-signups by default
-      SIGNUPS_ALLOWED: "false"
-      # Enable websockets for live updates
-      WEBSOCKET_ENABLED: "true"
-      # (Optional) set an admin token for /admin endpoint
-      # ADMIN_TOKEN: "your-long-random-token"
-      # You can add LOG_LEVEL, ROCKET_ENV, etc. as needed
+      DOMAIN: "https://vaultwarden.example.com"  # Your domain; vaultwarden needs to know it's https to work properly with attachments
+      SIGNUPS_ALLOWED: "true"
+    volumes:
+      - /vw-data:/data
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: always
+    ports:
+      - 80:80  # Needed for the ACME HTTP-01 challenge.
+      - 443:443
+      - 443:443/udp # Needed for HTTP/3.
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy-config:/config
+      - ./caddy-data:/data
+    environment:
+      DOMAIN: "https://vaultwarden.example.com"  # Your domain.
+      EMAIL: "admin@example.com"                 # The email address to use for ACME registration.
+      LOG_FILE: "/data/access.log"
