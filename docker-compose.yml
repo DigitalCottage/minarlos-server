@@ -1,35 +1,65 @@
-version: "3"
+version: '3.8'
 
 services:
+  # Reverse proxy using Traefik
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--api.insecure=true"                              # Enables Traefik dashboard (remove or secure in production)
+      - "--providers.docker=true"                           # Enable Docker provider
+      - "--providers.docker.exposedbydefault=false"         # Only use containers with explicit labels
+      - "--entrypoints.web.address=:80"                     # HTTP entrypoint
+      - "--entrypoints.websecure.address=:443"              # HTTPS entrypoint
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"  # ACME http challenge
+      - "--certificatesresolvers.le.acme.email=your-email@example.com"  # Replace with your email
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"      # Access Docker socket
+      - "./letsencrypt/data:/letsencrypt"                        # Let's Encrypt storage
+    networks:
+      - web
+
+  # Example App: whoami (for testing path routing)
+  whoami:
+    image: traefik/whoami
+    container_name: whoami
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=PathPrefix(`/whoami`)"
+      - "traefik.http.routers.whoami.entrypoints=web"
+      - "traefik.http.routers.whoami.middlewares=whoami-strip"
+      - "traefik.http.middlewares.whoami-strip.stripprefix.prefixes=/whoami"
+      - "traefik.http.services.whoami.loadbalancer.server.port=80"
+    networks:
+      - web
+
+  # Vaultwarden service, served at /vault
   vaultwarden:
     image: vaultwarden/server:latest
     container_name: vaultwarden
     restart: unless-stopped
+    volumes:
+      - ./vaultwarden/data:/data                                    # Persist data
     environment:
-      WEBSOCKET_ENABLED: 'true'
-      ROCKET_BASE_PATH: '/vault'
-    volumes:
-      - ./vaultwarden/data:/data
-    expose:
-      - 80
+      WEBSOCKET_ENABLED: "true"                            # Enable websockets for notifications
+      SIGNUPS_ALLOWED: "false"                             # Disable public signups
+      DOMAIN: "https://your-domain.com"                   # Replace with your domain
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vaultwarden.rule=PathPrefix(`/vault`)"
+      - "traefik.http.routers.vaultwarden.entrypoints=web"
+      - "traefik.http.routers.vaultwarden.middlewares=vaultwarden-strip"
+      - "traefik.http.middlewares.vaultwarden-strip.stripprefix.prefixes=/vault"
+      - "traefik.http.services.vaultwarden.loadbalancer.server.port=80"
     networks:
-      - nginx_network
-
-  nginx-proxy-manager:
-    image: jc21/nginx-proxy-manager:latest
-    container_name: nginx_proxy_manager
-    restart: unless-stopped
-    ports:
-      - "80:80"     # HTTP
-      - "443:443"   # HTTPS
-      - "81:81"     # Admin UI
-    volumes:
-      - ./nginx/data:/data
-      - ./nginx/letsencrypt:/etc/letsencrypt
-      - ./nginx/vaultwarden.conf:/data/nginx/proxy_host/vaultwarden/location.conf
-    networks:
-      - nginx_network
+      - web
 
 networks:
-  nginx_network:
+  web:
     driver: bridge
