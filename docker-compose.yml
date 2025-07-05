@@ -50,7 +50,7 @@ services:
       WEBSOCKET_ENABLED: "true"
       SIGNUPS_ALLOWED: "false"
       # Must include sub-path and trailing slash for proper link generation
-      DOMAIN: "http://192.168.1.50/vault/"
+      DOMAIN: "http://192.168.1.50"
     labels:
       - "traefik.enable=true"
 
