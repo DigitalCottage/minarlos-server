@@ -40,7 +40,7 @@ services:
       WEBSOCKET_ENABLED: "true"
       SIGNUPS_ALLOWED: "false"
       # Let Traefik handle the public host+path
-      DOMAIN: "https://vault.example.com/vault/"
+      DOMAIN: "https://192.168.1.146/vault/"
     labels:
       - "traefik.enable=true"
       # Route vault.example.com
