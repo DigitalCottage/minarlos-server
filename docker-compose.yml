@@ -39,7 +39,7 @@ services:
     networks:
       - web
 
-  # Vaultwarden service, served at /vault
+  # Vaultwarden service, served at /vault with sub-path support
   vaultwarden:
     image: vaultwarden/server:latest
     container_name: vaultwarden
@@ -49,16 +49,25 @@ services:
     environment:
       WEBSOCKET_ENABLED: "true"
       SIGNUPS_ALLOWED: "false"
-      # Base URL for link generation - include the subpath
-      DOMAIN: "http://192.168.1.50/vault"
+      # Must include sub-path and trailing slash for proper link generation
+      DOMAIN: "http://192.168.1.50/vault/"
     labels:
       - "traefik.enable=true"
-      # Match both /vault and /vault/*, strip the /vault prefix, then proxy
-      - "traefik.http.routers.vaultwarden.rule=PathPrefix(`/vault`)"
+
+      # 1) Redirect exact /vault → /vault/ for clients
+      - "traefik.http.routers.vaultwarden-root.entrypoints=web"
+      - "traefik.http.routers.vaultwarden-root.rule=Path(`/vault`)"
+      - "traefik.http.routers.vaultwarden-root.middlewares=vw-add-slash"
+      - "traefik.http.middlewares.vw-add-slash.redirectregex.regex=^/vault$"
+      - "traefik.http.middlewares.vw-add-slash.redirectregex.replacement=/vault/"
+
+      # 2) Handle all /vault/ → strip prefix, proxy to Vaultwarden
       - "traefik.http.routers.vaultwarden.entrypoints=web"
-      - "traefik.http.routers.vaultwarden.middlewares=vw-strip"
+      - "traefik.http.routers.vaultwarden.rule=PathPrefix(`/vault/`)"
+      - "traefik.http.routers.vaultwarden.middlewares=vw-strip-prefix"
+      - "traefik.http.middlewares.vw-strip-prefix.stripprefix.prefixes=/vault/"
       - "traefik.http.services.vaultwarden.loadbalancer.server.port=80"
-      - "traefik.http.middlewares.vw-strip.stripprefix.prefixes=/vault"
+
     networks:
       - web
 
