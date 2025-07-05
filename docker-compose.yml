@@ -1,59 +1,20 @@
-version: '3.8'
-
-networks:
-  web:
-    driver: bridge
-  traefik:
-    driver: bridge
-
+version: "3.8"
 services:
-  traefik:
-    image: traefik:v2.10
-    container_name: traefik
-    restart: unless-stopped
-    ports:
-      - 80:80
-      - 443:443
-    command:
-      # Docker provider (containers only served when labeled)
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      # Define entrypoints
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      # File provider for your static cert
-      - "--providers.file.filename=/certs/tls.yaml"
-      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"  # you can keep ACME around for other hostnames
-    volumes:
-      - ./certs:/certs:ro
-      - ./letsencrypt:/letsencrypt
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - traefik
-      - web
-
   vaultwarden:
     image: vaultwarden/server:latest
     container_name: vaultwarden
     restart: unless-stopped
+    ports:
+      # Expose Vaultwarden's web UI on host port 80
+      - "80:80"
     volumes:
+      # Persist data (DB, attachments, config)
       - ./vw-data:/data
     environment:
-      WEBSOCKET_ENABLED: "true"
+      # Prevent public self-signups by default
       SIGNUPS_ALLOWED: "false"
-      # Tell Vaultwarden its public URL root
-      DOMAIN: "https://192.168.1.146/vault/"
-    labels:
-      - "traefik.enable=true"
-      # Match IP + /vault prefix
-      - "traefik.http.routers.vault.rule=Host(`192.168.1.146`) && PathPrefix(`/vault`)"
-      - "traefik.http.routers.vault.entrypoints=websecure"
-      - "traefik.http.routers.vault.tls=true"
-      # No certresolver → uses your file‐provided cert
-      - "traefik.http.services.vault.loadbalancer.server.port=80"
-      # Strip /vault before proxying
-      - "traefik.http.middlewares.vault-stripprefix.stripprefix.prefixes=/vault"
-      - "traefik.http.routers.vault.middlewares=vault-stripprefix"
-    networks:
-      - web
-      - traefik
+      # Enable websockets for live updates
+      WEBSOCKET_ENABLED: "true"
+      # (Optional) set an admin token for /admin endpoint
+      # ADMIN_TOKEN: "your-long-random-token"
+      # You can add LOG_LEVEL, ROCKET_ENV, etc. as needed
