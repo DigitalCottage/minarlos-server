@@ -18,8 +18,14 @@
   encode zstd gzip
 
   # Proxy everything to Rocket
-  route /vault* {
-    uri strip_prefix /vault
-    reverse_proxy vaultwarden:80
+  route {
+    # Match any request under /vault/*
+    handle_path /vault/* {
+      uri strip_prefix /vault/
+      reverse_proxy vaultwarden:80
+    }
+
+    # Fallback for all other requests
+    respond "404 Not Found" 404
   }
 }
