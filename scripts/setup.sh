@@ -1,4 +1,11 @@
 #!/bin/bash
+set -euo pipefail
+
+# Ensure we’re root
+if [ "$EUID" -ne 0 ]; then
+  echo "⛔  Please run as root (e.g. sudo $0)" >&2
+  exit 1
+fi
 
 # Get the repo root (one level up from this script)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -22,6 +29,9 @@ cat > "$CRON_FILE" <<EOF
 * * * * * root $GIT_PULL_SCRIPT >> $GIT_PULL_LOGS 2>&1
 */5 * * * * root $UPDATE_DNS_SCRIPT >> $UPDATE_DNS_LOGS 2>&1
 EOF
+
+chown root:root "$CRON_FILE"
+chmod 644 "$CRON_FILE"
 
 # Install the crontab
 crontab "$CRON_FILE"
