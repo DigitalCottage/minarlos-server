@@ -23,7 +23,7 @@ services:
       - ./caddy-config:/config
       - ./caddy-data:/data
     env_file:
-      - .env
+      - .env.local
     environment:
       DOMAIN: "${DOMAIN}"  # Your domain.
       EMAIL: "${ACME_EMAIL}"                 # The email address to use for ACME registration.
