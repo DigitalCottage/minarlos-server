@@ -19,10 +19,10 @@
 
   # Proxy everything to Rocket
   route {
-    handle_path /vault {
-      # Use 301 (permanent) or 308 if you want to preserve HTTP method on POST, etc.
-      redir /vault/ 308
+    @vaultNoSlash {
+      path /vault
     }
+    redir @vaultNoSlash /vault/ 308
 
     # Match any request under /vault/*
     handle_path /vault/* {
