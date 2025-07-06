@@ -19,7 +19,7 @@ GIT_PULL_SCRIPT="$SCRIPT_DIR/pull-and-restart.sh"
 GIT_PULL_LOGS="$LOG_DIR/pull-and-restart.log"
 
 UPDATE_DNS_SCRIPT="$SCRIPT_DIR/update-dns.sh"
-UPDATE_DNS_LOGS="$SCRIPT_DIR/update-dns.log"
+UPDATE_DNS_LOGS="$LOG_DIR/update-dns.log"
 
 # Make sure log folder exists
 mkdir -p "$LOG_DIR"
