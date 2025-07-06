@@ -34,7 +34,4 @@ EOF
 chown root:root "$CRON_FILE"
 chmod 644 "$CRON_FILE"
 
-# Install the crontab
-crontab "$CRON_FILE"
-
 echo "✅ Cron job installed for repo at $REPO_DIR"
