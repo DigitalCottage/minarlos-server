@@ -14,9 +14,9 @@ set -euo pipefail
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # 2) load env vars
-if [ -f .env ]; then
+if [ -f ../.env ]; then
   # shellcheck disable=SC1091
-  source .env
+  source ../.env
 else
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: .env not found" >&2
   exit 1
