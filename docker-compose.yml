@@ -4,6 +4,8 @@ services:
     image: vaultwarden/server:latest
     container_name: vaultwarden
     restart: always
+    env_file:
+      - .env.local
     environment:
       # Tell Vaultwarden what its public URL is (must be https for attachments)
       DOMAIN: "https://${DOMAIN}"
