@@ -1,7 +1,7 @@
 {$DOMAIN} {
   log {
     level INFO
-    output file {$LOG_FILE} {
+    output file /var/log/caddy/caddy.log {
       roll_size 10MB
       roll_keep 10
     }
