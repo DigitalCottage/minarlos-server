@@ -11,8 +11,9 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 
+mkdir -p "/etc/cron.d"
 # Paths
-CRON_FILE="$REPO_DIR/scripts/.generated_crontab"
+CRON_FILE="/etc/cron.d/minarlos-server"
 LOG_DIR="$REPO_DIR/scripts/logs"
 
 GIT_PULL_SCRIPT="$SCRIPT_DIR/pull-and-restart.sh"
