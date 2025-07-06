@@ -18,5 +18,8 @@
   encode zstd gzip
 
   # Proxy everything to Rocket
-  reverse_proxy vaultwarden:80
+  route /vault* {
+    uri strip_prefix /vault
+    reverse_proxy vaultwarden:80
+  }
 }

@@ -18,7 +18,7 @@ services:
       - "80:80"
       - "443:443"
       - "443:443/udp"
-    volumes:
+    volumes: 
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy-config:/config
       - ./caddy-data:/data
@@ -26,6 +26,6 @@ services:
       - .env
     environment:
       DOMAIN: "${DOMAIN}"  # Your domain.
-      EMAIL: "admin@example.com"                 # The email address to use for ACME registration.
+      EMAIL: "${ACME_EMAIL}"                 # The email address to use for ACME registration.
       DUCKDNS_TOKEN: "${DUCKDNS_TOKEN}"                   # Your Duck DNS token.
       LOG_FILE: "/data/access.log"
