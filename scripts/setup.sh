@@ -19,8 +19,8 @@ mkdir -p "$LOG_DIR"
 
 # Create dynamic crontab
 cat > "$CRON_FILE" <<EOF
-* * * * * $GIT_PULL_SCRIPT >> $GIT_PULL_LOGS 2>&1
-*/5 * * * * $UPDATE_DNS_SCRIPT >> $UPDATE_DNS_LOGS 2>&1
+* * * * * root $GIT_PULL_SCRIPT >> $GIT_PULL_LOGS 2>&1
+*/5 * * * * root $UPDATE_DNS_SCRIPT >> $UPDATE_DNS_LOGS 2>&1
 EOF
 
 # Install the crontab
