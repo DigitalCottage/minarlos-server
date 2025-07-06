@@ -32,9 +32,9 @@ else
 fi
 
 # Step 3: load .env (if present) and check for SET_SERVER_DOWN
-if [ -f .env ]; then
+if [ -f ../.env ]; then
   # shellcheck disable=SC1091
-  source .env
+  source ../.env
 fi
 
 if [ "${SET_SERVER_DOWN:-false}" = "true" ]; then
