@@ -17,6 +17,7 @@ if [[ $EXIT_CODE -ne 0 ]]; then
     echo "$(date): transmission-remote timed out, restarting transmission-daemon" >&2
     sudo systemctl restart transmission-daemon
   else
+    sudo systemctl restart transmission-daemon
     echo "$(date): transmission-remote failed with exit code ${EXIT_CODE}:" >&2
     echo "${OUTPUT}" >&2
   fi
