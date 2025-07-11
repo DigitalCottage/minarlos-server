@@ -22,8 +22,8 @@ GIT_PULL_LOGS="$LOG_DIR/pull-and-restart.log"
 UPDATE_DNS_SCRIPT="$SCRIPT_DIR/update-dns.sh"
 UPDATE_DNS_LOGS="$LOG_DIR/update-dns.log"
 
-CHECK_TRANSMISSION_SCRIPT="$SCRIPT_DIR/update-dns.sh"
-CHECK_TRANSMISSION_LOGS="$LOG_DIR/update-dns.log"
+CHECK_TRANSMISSION_SCRIPT="$SCRIPT_DIR/check-transmission-job.sh"
+CHECK_TRANSMISSION_LOGS="$LOG_DIR/check-transmission-job.log"
 
 # Make sure log folder exists
 mkdir -p "$LOG_DIR"
