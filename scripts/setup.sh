@@ -22,12 +22,16 @@ GIT_PULL_LOGS="$LOG_DIR/pull-and-restart.log"
 UPDATE_DNS_SCRIPT="$SCRIPT_DIR/update-dns.sh"
 UPDATE_DNS_LOGS="$LOG_DIR/update-dns.log"
 
+CHECK_TRANSMISSION_SCRIPT="$SCRIPT_DIR/update-dns.sh"
+CHECK_TRANSMISSION_LOGS="$LOG_DIR/update-dns.log"
+
 # Make sure log folder exists
 mkdir -p "$LOG_DIR"
 
 # Create dynamic crontab
 cat > "$CRON_FILE" <<EOF
 * * * * * root $GIT_PULL_SCRIPT >> $GIT_PULL_LOGS 2>&1
+* * * * * root $CHECK_TRANSMISSION_SCRIPT >> $CHECK_TRANSMISSION_LOGS 2>&1
 */5 * * * * root $UPDATE_DNS_SCRIPT >> $UPDATE_DNS_LOGS 2>&1
 EOF
 
